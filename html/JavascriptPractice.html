@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script>
+$(document).ready(function(){
+    var val = document.getElementById("test");
+    var btn = document.querySelector("button");
+    btn.onclick = function(){console.log(val.textContent)};
+});
+</script>
+</head>
+<body>
+
+<p>Name: <input type="text" id="test" value="Mickey Mouse"></p>
+
+<button>Show Value</button>
+
+</body>
+</html>
