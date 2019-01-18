@@ -1,6 +1,9 @@
 const express = require("express");
 const app = express();
 
+app.set("view engine" , "jade");
+app.set("views", "./views");
+
 app.use(express.static("public"));
 
 app.get("/",(req, res) => {
@@ -74,6 +77,10 @@ app.get("/",(req, res) => {
 
 app.get("/login",(req, res) => {
     res.send("<h1>Login</h1>");
+});
+
+app.get("/template", (req, res) =>{
+    res.render("first"); 
 });
 
 app.listen(3000, () => {
