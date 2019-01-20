@@ -5,8 +5,8 @@ app.set("view engine" , "jade");
 app.set("views", "./views");
 app.use(express.static("public"));
 
-app.get("/topic", (req, res) =>{
-  res.send(req.query.id);
+app.get("/topic/:id", (req, res) =>{
+  res.send(req.params);
 });
 
 app.get("/",(req, res) => {
