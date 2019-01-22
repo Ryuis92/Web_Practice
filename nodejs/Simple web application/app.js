@@ -1,13 +1,14 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const fs = require("fs");
+const multer = require("multer");
+const upload = multer({dest:"uploads/"});
+
 const app = express();
 
 app.locals.pretty = true;
-
 app.set("view engine", "jade");
 app.set("views", "./views");
-
 app.use(bodyParser.urlencoded({
     extended: true
 }));
@@ -54,6 +55,18 @@ app.get(["/topic", "/topic/:topic"], (req, res) => {
         }
     })
 });
+
+app.get("/upload", (req, res)=>{
+    res.render("upload");
+});
+
+app.post('/up', upload.single("first"), function (req, res) {
+  res.sendFile("./uploads/" + req.file.filename, {root :"./"} , (err)=>{
+      if(err)
+            res.status(500).send("internal sever error")
+  });
+})
+
 
 app.listen(8888, () => {
     console.log("Server Connected 8888 port!");
