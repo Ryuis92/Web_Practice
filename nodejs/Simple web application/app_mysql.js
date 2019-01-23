@@ -16,11 +16,10 @@ const app = express();
 
 app.locals.pretty = true;
 app.set("view engine", "jade");
-app.set("views", "./views");
+app.set("views", "./views_mysql");
 app.use(bodyParser.urlencoded({
     extended: true
 }));
-
 
 app.post("/topic", (req, res) => {
     var title = req.body.title;
@@ -46,22 +45,26 @@ app.get("/topic/new", (req, res) => {
     });
 });
 
-app.get(["/topic", "/topic/:topic"], (req, res) => {
-    fs.readdir("./data", (err, files) => {
-        var topic = req.params.topic;
-        if (topic) {
-            fs.readFile("./data/" + topic, (err, data) => {
-                if (err) {
-                    console.log(err);
-                    res.status(500).send("Internal server error");
-                }
-                res.render("topic", {files: files, title: topic, content: data});
-            })
-
-        } else {
-            res.render("topic", {files: files, title: "Hello", content: "Good to see you"});
+app.get(["/topic", "/topic/:id"], (req, res) => {
+    var id = req.params.id
+    var sql = "select title, id from topic;"
+    var title = "Hello";
+    var content = "Good to see you";
+    conn.query(sql, (err, rows, fields)=>{
+        if(err){
+            console.log(err);
+            res.status(500).send("Internal server error");
         }
-    })
+
+        if(id){
+            sql = `select * from topic where id='${id}';`
+            conn.query(sql, (err, list, fields)=>{
+                res.render("topic_mysql", {topics: rows, topic:list[0]});
+            })
+        }
+        else
+            res.render("topic_mysql", {topics: rows});
+    });
 });
 
 app.get("/upload", (req, res)=>{
@@ -77,10 +80,5 @@ app.post('/up', upload.single("first"), function (req, res) {
 
 
 app.listen(8888, () => {
-    console.log("Server Connected 8888 port!");
-    
-    conn.query('SELECT * from topic;', function (error, results, fields) {
-        if (error) throw error;
-        console.log(results);
-    });
+    console.log("Server Connected 8888 port!"); 
 });

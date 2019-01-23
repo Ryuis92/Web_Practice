@@ -1,0 +1,21 @@
+doctype html
+html
+    head
+        meta(charset="utf-8")
+        title
+    body
+        h1
+            a(href="/topic") Server Side Javascript
+        ul
+            each t in topics 
+                li
+                    a(href="/topic/"+t.id)= t.title
+        article
+            if topic
+                h2= topic.title
+                p= topic.description
+                p= '-' + topic.author
+            else
+                h2 Welcome
+                p Hi~
+        a(href="/topic/new") new  
