@@ -11,7 +11,11 @@ const conn = mysql.createConnection({
     database: "o2"
 });
 
-conn.connect();
+conn.connect((err)=>{
+  if(err){
+    console.log(err);
+  }
+});
 const app = express();
 
 app.locals.pretty = true;
@@ -23,26 +27,101 @@ app.use(bodyParser.urlencoded({
 
 app.post("/topic", (req, res) => {
     var title = req.body.title;
-    var content = req.body.description;
-    fs.writeFile(`./data/${title}`, content, "utf-8", (err) => {
-        if (err) {
-            console.log(e);
-            res.status(500).send("Internal server error");
+    var des = req.body.description;
+    var author = req.body.author;
+    if(title && des && author){
+      var sql = `insert into topic(title, description, author) values("${title}", "${des}", "${author}")`;
+      conn.query(sql, (err, rows, fields) =>{
+        if(err){
+          res.status(500).send("Internal server error");
         }
-    res.redirect("/topic/" + title);
-        
-    });
+        else{
+            res.redirect("/topic/" + rows.insertId);
+        }
+      });
+    }
 });
 
+app.get("/topic/add", (req, res) => {
+  var sql = "select title, id from topic;"
+  conn.query(sql, (err, rows, fields) => {
+    if (err) {
+      console.log(err);
+      res.status(500).send("Internal server error");
+    }
+    res.render("add", {topics:rows})
+  });
+});
 
-app.get("/topic/new", (req, res) => {
-    fs.readdir("./data", (err, files) => {
-        if (err) {
-            console.log(err);
-            res.status(500).send("Internal server error");
-        }
-        res.render("new", {files: files, topics: files});
+app.get("/topic/:id/edit", (req, res) =>{
+  var id = req.params.id;
+  var sql = "select title, id from topic";
+  conn.query(sql, (err, rows, fields) =>{
+    if(err){
+      console.log(err);
+      res.status(500).send("Internal server error");
+    }
+    sql = `select * from topic where id =${id}`;
+    conn.query(sql, (err, list, fields) =>{
+      if(err){
+        console.log(err);
+        res.status(500).send("Internal server error");
+      }
+      res.render("edit", {topics:rows, topic:list[0]});
     });
+  });
+});
+
+app.post("/topic/:id/edit", (req, res) =>{
+  var title = req.body.title;
+  var desc = req.body.description;
+  var author = req.body.author;
+  var id = req.params.id;
+  var sql = `update topic set title = "${title}", description = "${desc}", author = "${author}" where id=${id}`
+
+  conn.query(sql, (err, rows, fields)=>{
+    if(err){
+      console.log(err);
+      res.status(500).send("Internal server error");
+    }
+    else{
+      console.log(rows);
+      res.redirect("/topic/" + id);
+    }
+  });
+});
+
+app.get("/topic/:id/delete", (req, res) =>{
+  var id = req.params.id;
+  var sql = "select title, id from topic";
+  conn.query(sql, (err, rows, fields) =>{
+    if(err){
+      console.log(err);
+      res.status(500).send("Internal server error");
+    }
+    sql = `select * from topic where id =${id}`;
+    conn.query(sql, (err, list, fields) =>{
+      if(err){
+        console.log(err);
+        res.status(500).send("Internal server error");
+      }
+      res.render("delete", {topics:rows, topic:list[0]});
+    });
+  });
+});
+
+app.post("/topic/:id/delete", (req, res) =>{
+  var id = req.params.id;
+  sql = "delete from topic where id = ?";
+  conn.query(sql, [id], (err, rows, fields)=>{
+    if(err){
+      console.log(err);
+      res.status(500).send("Internal server error");
+    }
+    else{
+      res.redirect("/topic");
+    }
+  });
 });
 
 app.get(["/topic", "/topic/:id"], (req, res) => {
@@ -67,18 +146,6 @@ app.get(["/topic", "/topic/:id"], (req, res) => {
     });
 });
 
-app.get("/upload", (req, res)=>{
-    res.render("upload");
-});
-
-app.post('/up', upload.single("first"), function (req, res) {
-  res.sendFile("./uploads/" + req.file.filename, {root :"./"} , (err)=>{
-      if(err)
-            res.status(500).send("internal sever error")
-  });
-})
-
-
 app.listen(8888, () => {
-    console.log("Server Connected 8888 port!"); 
+    console.log("Server Connected 8888 port!");
 });

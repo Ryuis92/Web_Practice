@@ -7,7 +7,7 @@ html
         h1
             a(href="/topic") Server Side Javascript
         ul
-            each t in topics 
+            each t in topics
                 li
                     a(href="/topic/"+t.id)= t.title
         article
@@ -18,4 +18,14 @@ html
             else
                 h2 Welcome
                 p Hi~
-        a(href="/topic/new") new  
+        ul
+          li
+            a(href="/topic/add")
+              button(type="button") add
+          if topic
+            li
+              a(href="/topic/"+ topic.id + "/delete")
+                button(type="button") delete
+            li
+              a(href="/topic/"+ topic.id + "/edit")
+                button(type="button") edit

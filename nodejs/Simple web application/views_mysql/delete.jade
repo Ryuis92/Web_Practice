@@ -1,0 +1,18 @@
+doctype html
+html
+    head
+        meta(charset="utf-8")
+        title Simple Web App
+    body
+        h1
+            a(href="/topic") Server Side Javascript
+        ul
+            each t in topics
+                li
+                    a(href="/topic/"+t.id)= t.title
+        article
+          h2= "\"" + topic.title + "\" will be deleted."
+          form(action = "/topic/" + topic.id +"/delete" method="post")
+            input(type="submit" value="Yes")
+          a(href="/topic/" + topic.id)
+            button No
