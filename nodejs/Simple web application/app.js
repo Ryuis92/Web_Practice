@@ -31,7 +31,7 @@ app.post("/topic", (req, res) => {
             res.status(500).send("Internal server error");
         }
     res.redirect("/topic/" + title);
-        
+
     });
 });
 
@@ -78,7 +78,7 @@ app.post('/up', upload.single("first"), function (req, res) {
 
 app.listen(8888, () => {
     console.log("Server Connected 8888 port!");
-    
+
     conn.query('SELECT * from topic;', function (error, results, fields) {
         if (error) throw error;
         console.log(results);
