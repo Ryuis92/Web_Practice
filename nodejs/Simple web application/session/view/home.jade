@@ -3,9 +3,13 @@ html
   head
     meta(charset="utf-8")
   body
-    if id
-      h1= "Hello," + id
+    if nickname
+      h1= "Hello, " + nickname
       a(href = "/auth/logout") Logout
     else
       h1 Hello, Guest!
-      a(href = "/auth/login") Login
+      ul
+        li
+          a(href = "/auth/login") Login
+        li
+          a(href = "/auth/register") Register
