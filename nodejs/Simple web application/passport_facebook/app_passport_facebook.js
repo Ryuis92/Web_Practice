@@ -5,6 +5,7 @@ const bkfd2Password = require("pbkdf2-password");
 const hasher = bkfd2Password();
 const passport = require("passport");
 const LocalStrategy = require('passport-local').Strategy;
+const FacebookStrategy = require('passport-facebook').Strategy;
 
 const app = express();
 let port = 8888;
@@ -27,7 +28,7 @@ app.set("views", "./view");
 passport.use(new LocalStrategy(
   function(username, password, done) {
     for (var index in users) {
-      if (users[index].id === username) {
+      if (users[index].id === "local:"+username) {
         return hasher({password:password, salt:users[index].salt}, (err, pass, salt, hash)=>{
           if(users[index].pw === hash){
             done(null, users[index]);
@@ -42,6 +43,23 @@ passport.use(new LocalStrategy(
   }
 ));
 
+passport.use(new FacebookStrategy({
+    clientID: "ID",
+    clientSecret: "secret",
+    callbackURL: "/auth/facebook/callback"
+  },
+  function(accessToken, refreshToken, profile, done) {
+    console.log(profile);
+    for(var index in users)
+    {
+      if(users[index].id === "facebook:"+profile.id)
+        return done(null, users[index]);
+    }
+    user = {id: "facebook:"+profile.id, displayName:profile.displayName};
+    done(null, user);
+  }
+));
+
 passport.serializeUser(function(user, done) {
   done(null, user.id);
 });
@@ -52,14 +70,19 @@ passport.deserializeUser(function(id, done) {
       done(null, users[index]);
 });
 
+app.get("/auth/facebook", passport.authenticate('facebook'));
+app.get('/auth/facebook/callback', passport.authenticate('facebook', { successRedirect: '/',
+                                                                      failureRedirect: '/auth/login' })
+);
+
 app.get("/", (req, res) =>{
-  let nickname;
+  let displayName;
   console.log(req.user);
   console.log(req.session)
-  if(req.user && req.user.nickname){
-    nickname = req.user.nickname;
+  if(req.user && req.user.displayName){
+    displayName = req.user.displayName;
   }
-  res.render("home", {nickname: nickname});
+  res.render("home", {displayName: displayName});
 });
 
 app.get("/auth/login", (req, res)=>{
@@ -83,19 +106,20 @@ app.get("/auth/register", (req, res)=>{
 });
 
 app.post("/auth/register", (req,res)=>{
-  let id = req.body.username;
+  let id = "local:" + req.body.username;
+  let name = req.body.username;
   let pw = req.body.password;
-  let nickname = req.body.nickname;
+  let displayName = req.body.displayName;
 
   for(var index in users){
-    if(users[index].id === id || users[index].nickname === nickname){
-      return  res.send("The ID or nickname is already taken.");
+    if(users[index].name === name || users[index].displayName === displayName){
+      return  res.send("The ID or displayName is already taken.");
     }
   }
 
   hasher({password: pw}, (err, pass, salt, hash)=>{
-    users.push({id:id, nickname:nickname, pw:hash, salt:salt});
-    req.login({id:id, nickname:nickname, pw:hash, salt:salt}, (err)=>{
+    users.push({id:id, name:name, displayName:displayName, pw:hash, salt:salt});
+    req.login(users[users.length-1], (err)=>{
       req.session.save(()=>{
         res.redirect("/");
       });
